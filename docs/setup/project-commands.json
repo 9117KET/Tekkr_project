@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Start Backend",
+    "command": "cd server && npm start",
+    "description": "Start the Fastify backend server on port 8000"
+  },
+  {
+    "name": "Start Frontend",
+    "command": "cd web && npm start",
+    "description": "Start the React frontend on port 3000"
+  },
+  {
+    "name": "Install Backend Dependencies",
+    "command": "cd server && npm install",
+    "description": "Install backend npm packages"
+  },
+  {
+    "name": "Install Frontend Dependencies",
+    "command": "cd web && npm install",
+    "description": "Install frontend npm packages"
+  }
+]

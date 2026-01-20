@@ -1,0 +1,52 @@
+# Tekkr Full-Stack Challenge Project Rules
+
+## Core Requirements
+1. **LLM Integration**: Must use one of: Gemini, OpenAI, or Anthropic
+2. **State Management**: Use React Query for all backend interactions
+3. **UI Components**: Use shadcn/ui components (already installed)
+4. **LLM Abstraction**: Design must allow easy swapping between LLM providers
+5. **Storage**: Use in-memory storage (no database required)
+6. **Persistence**: Chat history must persist across page reloads using localStorage
+
+## Architecture Constraints
+- **Backend**: Fastify framework (TypeScript)
+- **Frontend**: React with TypeScript
+- **Avoid**: Changing existing code unless absolutely necessary
+- **Add**: New files and endpoints as needed
+- **Dependencies**: Can add npm packages as needed
+
+## Feature Requirements
+
+### Chat Features
+- "New Chat" button must create new chat sessions
+- Sidebar must display all chats and allow switching
+- Loading indicator during LLM responses
+- Chat history persists on page reload
+- Selected chat persists on page reload
+
+### Project Plan Preview
+- Inline preview for project plans in chat messages
+- Expandable/collapsible workstreams and deliverables
+- Must work mid-message (not just at start/end)
+- Structure: Workstreams → Deliverables (both have title + description)
+
+### Error Handling
+- All errors must be handled gracefully
+- User-friendly error messages
+
+### Bonus (Optional)
+- Visual AI Model selector on chat homepage
+- Allow switching between models (e.g., Gemini 2.5 Flash, GPT-5 mini)
+
+## Development Workflow
+1. **Plan First**: Use chain-of-thought reasoning before any implementation
+2. **Commit Stages**: Commit after each major feature/stage
+3. **Documentation**: Update docs/planning/development-log.md with decisions and special aspects
+4. **Explain Everything**: Every implementation must be understood and documented
+
+## Code Quality Standards
+- Follow existing code style and patterns
+- Use TypeScript strictly (no `any` types)
+- Keep functions small and focused
+- Clear separation between frontend and backend
+- Proper error handling at all layers
