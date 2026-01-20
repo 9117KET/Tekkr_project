@@ -291,17 +291,22 @@
 ---
 
 ### Phase 4: Bonus Features (If Time Permits)
-**Date**: [To be filled]
-**Status**: Not Started
+**Date**: Current Session
+**Status**: ✅ Completed (Polish)
 
 #### Planning (Chain of Thought)
-- [ ] Design model selector UI
-- [ ] Plan model switching logic
-- [ ] Integrate with existing LLM abstraction
+- [x] Add an error boundary to prevent “blank screen” failures
+- [x] Display user-friendly network errors with clear recovery actions (retry)
+- [x] Prevent accidental actions during pending states (disable New Chat while creating)
+- [ ] Bonus: model selector UI (not implemented)
 
 #### Implementation Notes
-- **Files Created**: [To be filled]
-- **Files Modified**: [To be filled]
+- **Files Created**:
+  - `web/src/components/error-boundary.tsx`: React error boundary with reset/reload actions
+- **Files Modified**:
+  - `web/src/App.tsx`: Wrap router with `ErrorBoundary`
+  - `web/src/pages/home-page.tsx`: Add retriable error states for chats + chat load + message send
+  - `web/src/components/chat-sidebar.tsx`: Disable New Chat button when create callback is unavailable
 
 ---
 

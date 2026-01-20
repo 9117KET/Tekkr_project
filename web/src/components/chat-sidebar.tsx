@@ -16,7 +16,7 @@ interface Props {
 export function ChatSidebar(props: Props) {
   const { chats, selectedChatId } = props;
   return <div className={"flex flex-col border-r-accent border-r-2 h-full w-64 fixed left-0 top-16 bottom-0 p-4 gap-3"}>
-    <Button onClick={props.onCreateChat} size={"sm"}>
+    <Button onClick={props.onCreateChat} size={"sm"} disabled={!props.onCreateChat}>
       <PlusIcon className={"w-5 h-5"}/>
       New Chat
     </Button>

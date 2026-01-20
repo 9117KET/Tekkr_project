@@ -2,6 +2,7 @@ import {ChatSidebar} from "../components/chat-sidebar";
 import {useEffect, useMemo, useState} from "react";
 import {ChatInputBox} from "../components/chat-input-box";
 import {AssistantLoadingIndicator, MessageBody, MessageContainer} from "../components/message";
+import {Button} from "../components/ui/button";
 import {
     ChatMessage,
     useChatQuery,
@@ -51,9 +52,26 @@ export function HomePage () {
             chats={chats}
             selectedChatId={chatId}
             onSelectChat={setChatId}
-            onCreateChat={onCreateChat}
+            onCreateChat={createChatMutation.isPending ? undefined : onCreateChat}
         />
         <div className={"flex flex-col pt-8 max-w-4xl ms-64 w-full"}>
+            {(chatsQuery.isLoading || chatsQuery.isFetching) && chats.length === 0 && (
+                <p className={"text-muted-foreground"}>Loading chats…</p>
+            )}
+
+            {chatsQuery.isError && (
+                <div className={"flex w-full flex-col gap-2 rounded-lg border bg-background p-4"}>
+                    <div className={"text-sm font-semibold text-destructive"}>Failed to load chats</div>
+                    <div className={"text-sm text-muted-foreground"}>
+                        Please check that the backend is running on <span className={"font-mono"}>http://localhost:8000</span>.
+                    </div>
+                    <div className={"flex gap-2"}>
+                        <Button variant={"secondary"} onClick={() => chatsQuery.refetch()}>
+                            Retry
+                        </Button>
+                    </div>
+                </div>
+            )}
             <ChatWindow chatId={chatId} />
         </div>
     </div>
@@ -88,9 +106,17 @@ function ChatWindow ({ chatId }: { chatId: string | null }) {
         )}
 
         {chatQuery.isError && (
-            <p className={"text-destructive"}>
-                Failed to load chat.
-            </p>
+            <div className={"flex w-full flex-col gap-2 rounded-lg border bg-background p-4"}>
+                <div className={"text-sm font-semibold text-destructive"}>Failed to load chat</div>
+                <div className={"text-sm text-muted-foreground"}>
+                    The selected chat could not be loaded. Try again.
+                </div>
+                <div className={"flex gap-2"}>
+                    <Button variant={"secondary"} onClick={() => chatQuery.refetch()}>
+                        Retry
+                    </Button>
+                </div>
+            </div>
         )}
 
         {messages.map((message, index) => (
@@ -102,9 +128,9 @@ function ChatWindow ({ chatId }: { chatId: string | null }) {
         {sendMessageMutation.isPending && <AssistantLoadingIndicator />}
 
         {sendMessageMutation.isError && (
-            <p className={"text-destructive"}>
-                Failed to send message.
-            </p>
+            <div className={"rounded-lg border bg-background px-4 py-2 text-sm text-destructive"}>
+                Failed to send message. Please try again.
+            </div>
         )}
 
         <ChatInputBox onSend={onSend} />
