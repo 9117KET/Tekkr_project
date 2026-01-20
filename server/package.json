@@ -21,9 +21,11 @@
     "@fastify/autoload": "^6.0.0",
     "@fastify/cors": "^11.1.0",
     "@fastify/sensible": "^6.0.0",
+    "@google/generative-ai": "^0.24.1",
     "fastify": "^5.0.0",
     "fastify-cli": "^7.4.0",
-    "fastify-plugin": "^5.0.0"
+    "fastify-plugin": "^5.0.0",
+    "openai": "^6.16.0"
   },
   "devDependencies": {
     "@types/node": "^22.1.0",

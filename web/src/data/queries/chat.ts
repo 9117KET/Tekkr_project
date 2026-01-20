@@ -13,6 +13,7 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {apiClient} from "../client";
 
 export type ChatRole = "user" | "assistant";
+export type LLMProviderType = "anthropic" | "openai" | "gemini";
 
 export interface ChatMessage {
   id: string;
@@ -27,6 +28,8 @@ export interface Chat {
   id: string;
   name: string;
   messages: ChatMessage[];
+  llmProvider: LLMProviderType;
+  llmModel: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -42,6 +45,11 @@ export interface SendMessageRequest {
 export interface SendMessageResponse {
   message: ChatMessage;
   response: ChatMessage;
+}
+
+export interface UpdateChatModelRequest {
+  provider: LLMProviderType;
+  model: string;
 }
 
 function chatsKey() {
@@ -106,6 +114,25 @@ export function useSendMessageMutation(chatId: string | null) {
         throw new Error("Failed to send message");
       }
       return response.data as SendMessageResponse;
+    },
+    onSuccess: async () => {
+      if (!chatId) return;
+      await queryClient.invalidateQueries({queryKey: chatKey(chatId)});
+      await queryClient.invalidateQueries({queryKey: chatsKey()});
+    },
+  });
+}
+
+export function useUpdateChatModelMutation(chatId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: UpdateChatModelRequest) => {
+      if (!chatId) throw new Error("chatId is required");
+      const response = await apiClient.patch(`/api/chats/${chatId}/model`, body);
+      if (response.status !== 200) {
+        throw new Error("Failed to update chat model");
+      }
+      return response.data as Chat;
     },
     onSuccess: async () => {
       if (!chatId) return;

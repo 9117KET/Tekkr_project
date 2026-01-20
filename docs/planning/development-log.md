@@ -292,21 +292,27 @@
 
 ### Phase 4: Bonus Features (If Time Permits)
 **Date**: Current Session
-**Status**: ✅ Completed (Polish)
+**Status**: ✅ Completed (Polish + Bonus)
 
 #### Planning (Chain of Thought)
 - [x] Add an error boundary to prevent “blank screen” failures
 - [x] Display user-friendly network errors with clear recovery actions (retry)
 - [x] Prevent accidental actions during pending states (disable New Chat while creating)
-- [ ] Bonus: model selector UI (not implemented)
+- [x] Bonus: model selector UI (per-chat)
 
 #### Implementation Notes
 - **Files Created**:
   - `web/src/components/error-boundary.tsx`: React error boundary with reset/reload actions
+  - `web/src/components/model-selector.tsx`: UI for per-chat provider/model selection
 - **Files Modified**:
   - `web/src/App.tsx`: Wrap router with `ErrorBoundary`
   - `web/src/pages/home-page.tsx`: Add retriable error states for chats + chat load + message send
   - `web/src/components/chat-sidebar.tsx`: Disable New Chat button when create callback is unavailable
+  - `web/src/data/queries/chat.ts`: Add `llmProvider/llmModel` and mutation to update per-chat model
+  - `server/src/domain/chat/types.ts`, `server/src/domain/chat/store.ts`: Persist per-chat provider/model defaults
+  - `server/src/routes/api/chats/index.ts`: Add `PATCH /api/chats/:chatId/model` and use per-chat provider/model when sending messages
+  - `server/src/domain/llm/providers/openai.ts`, `server/src/domain/llm/providers/gemini.ts`: Implement real provider calls (requires API keys)
+  - `server/src/domain/llm/providers/anthropic.ts`: Support per-request model override
 
 ---
 

@@ -18,6 +18,12 @@ export interface Chat {
   id: string;
   name: string;
   messages: Message[];
+  /**
+   * Bonus: per-chat model configuration.
+   * This enables switching providers/models from the UI.
+   */
+  llmProvider: "anthropic" | "openai" | "gemini";
+  llmModel: string;
   createdAt: number;
   updatedAt: number;
 }

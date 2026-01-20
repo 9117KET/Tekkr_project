@@ -33,6 +33,11 @@ export interface LLMProvider {
        * Must not include secrets.
        */
       systemPrompt?: string;
+      /**
+       * Optional per-request model override (bonus model selector).
+       * Provider may ignore if unsupported.
+       */
+      model?: string;
     }
   ): Promise<string>;
 

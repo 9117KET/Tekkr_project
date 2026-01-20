@@ -51,7 +51,7 @@ export class AnthropicProvider implements LLMProvider {
    */
   async sendMessage(
     messages: Message[],
-    options?: { systemPrompt?: string }
+    options?: { systemPrompt?: string; model?: string }
   ): Promise<string> {
     try {
       // Convert our message format to Anthropic format
@@ -59,7 +59,7 @@ export class AnthropicProvider implements LLMProvider {
 
       // Call Anthropic API
       const response = await this.client.messages.create({
-        model: this.model,
+        model: options?.model || this.model,
         max_tokens: 4096,
         ...(options?.systemPrompt ? { system: options.systemPrompt } : {}),
         messages: anthropicMessages,

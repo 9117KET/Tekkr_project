@@ -43,8 +43,7 @@ function extractProjectPlanJson(content: string): string | null {
 }
 
 const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
-  // Initialize LLM provider (singleton pattern via factory)
-  const llmProvider = LLMProviderFactory.create();
+  // LLM provider is selected per-chat (bonus model selector)
 
   /**
    * POST /api/chats
@@ -109,6 +108,42 @@ const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
   });
 
   /**
+   * PATCH /api/chats/:chatId/model
+   * Update a chat's LLM provider/model selection (bonus).
+   */
+  fastify.patch<{
+    Params: { chatId: string };
+    Body: { provider: 'anthropic' | 'openai' | 'gemini'; model: string };
+  }>('/:chatId/model', async (request, reply) => {
+    try {
+      const { chatId } = request.params;
+      const { provider, model } = request.body || ({} as any);
+
+      if (!provider || (provider !== 'anthropic' && provider !== 'openai' && provider !== 'gemini')) {
+        reply.code(400).send({ error: 'provider must be one of: anthropic, openai, gemini', code: 'INVALID_REQUEST' });
+        return;
+      }
+      if (!model || typeof model !== 'string' || model.trim().length === 0) {
+        reply.code(400).send({ error: 'model is required', code: 'INVALID_REQUEST' });
+        return;
+      }
+
+      const chat = chatStore.getChat(chatId);
+      if (!chat) {
+        reply.code(404).send({ error: `Chat with id ${chatId} not found`, code: 'CHAT_NOT_FOUND' });
+        return;
+      }
+
+      chatStore.updateChat(chatId, { llmProvider: provider, llmModel: model.trim() });
+      const updated = chatStore.getChat(chatId);
+      reply.send(updated);
+    } catch (error) {
+      fastify.log.error(error);
+      reply.code(500).send({ error: 'Failed to update chat model', code: 'CHAT_UPDATE_ERROR' });
+    }
+  });
+
+  /**
    * POST /api/chats/:chatId/messages
    * Send a message to a chat and get LLM response
    */
@@ -162,12 +197,14 @@ const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
         // Get conversation history for LLM (includes the new user message)
         const conversationHistory = updatedChat.messages;
 
-        // Call LLM provider
+        // Call LLM provider (per-chat provider/model)
         let assistantResponse: string;
         try {
           const wantsProjectPlan = isProjectPlanRequest(content);
-          assistantResponse = await llmProvider.sendMessage(conversationHistory, {
+          const provider = LLMProviderFactory.create(chat.llmProvider);
+          assistantResponse = await provider.sendMessage(conversationHistory, {
             systemPrompt: wantsProjectPlan ? buildProjectPlanSystemPrompt() : undefined,
+            model: chat.llmModel,
           });
         } catch (llmError: unknown) {
           fastify.log.error({ err: llmError }, 'LLM error');

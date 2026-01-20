@@ -10,6 +10,17 @@
 import { Chat, Message } from './types';
 import { randomUUID } from 'crypto';
 
+function getDefaultLlmProvider(): Chat["llmProvider"] {
+  const fromEnv = (process.env.LLM_PROVIDER as Chat["llmProvider"] | undefined) ?? 'anthropic';
+  return fromEnv === 'anthropic' || fromEnv === 'openai' || fromEnv === 'gemini' ? fromEnv : 'anthropic';
+}
+
+function getDefaultLlmModel(provider: Chat["llmProvider"]): string {
+  if (provider === 'anthropic') return process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+  if (provider === 'openai') return process.env.OPENAI_DEFAULT_MODEL || 'gpt-4o-mini';
+  return process.env.GEMINI_DEFAULT_MODEL || 'gemini-2.0-flash';
+}
+
 class ChatStore {
   private chats: Map<string, Chat> = new Map();
   private chatCounter = 0;
@@ -23,11 +34,15 @@ class ChatStore {
     const id = randomUUID();
     const now = Date.now();
     const chatName = name || `Chat ${++this.chatCounter}`;
+    const llmProvider = getDefaultLlmProvider();
+    const llmModel = getDefaultLlmModel(llmProvider);
 
     const chat: Chat = {
       id,
       name: chatName,
       messages: [],
+      llmProvider,
+      llmModel,
       createdAt: now,
       updatedAt: now,
     };

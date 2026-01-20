@@ -3,6 +3,7 @@ import {useEffect, useMemo, useState} from "react";
 import {ChatInputBox} from "../components/chat-input-box";
 import {AssistantLoadingIndicator, MessageBody, MessageContainer} from "../components/message";
 import {Button} from "../components/ui/button";
+import {ModelSelector} from "../components/model-selector";
 import {
     ChatMessage,
     useChatQuery,
@@ -100,6 +101,8 @@ function ChatWindow ({ chatId }: { chatId: string | null }) {
 
     return <div className={"flex flex-col gap-4"}>
         <h2>{title}</h2>
+
+        {chatQuery.data && <ModelSelector chat={chatQuery.data} />}
 
         {(chatQuery.isLoading || chatQuery.isFetching) && messages.length === 0 && (
             <p className={"text-muted-foreground"}>Loading chat…</p>
