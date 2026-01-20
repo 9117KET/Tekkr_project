@@ -150,6 +150,23 @@ Frontend runs on: http://localhost:3000
 
 **Start here:** Read `docs/planning/project-plan.md` → Phase 2 section
 
+---
+
+## ✅ How to Test the App (Quick Manual)
+
+This is the minimum manual test path to validate Phase 1 + Phase 2 before starting Phase 3.
+
+1. Start backend (`server/`) and frontend (`web/`).
+2. Open the app at `http://localhost:3000`.
+3. Click **New Chat** → a chat should appear in the sidebar and become selected.
+4. Send a message → you should see:
+   - your message appear
+   - a loading indicator while waiting
+   - the assistant response appear
+5. Refresh the page:
+   - the same chat should remain selected
+   - the chat history should still be available
+
 ### Phase 3: Project Plan Preview (45-60 min)
 - Project plan parsing
 - Preview component

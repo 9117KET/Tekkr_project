@@ -220,25 +220,36 @@
 ---
 
 ### Phase 2: Frontend Chat Implementation
-**Date**: [To be filled]
-**Status**: Not Started
+**Date**: Current Session
+**Status**: ✅ Completed
 
 #### Planning (Chain of Thought)
-- [ ] Design chat state management with React Query
-- [ ] Plan localStorage persistence strategy
-- [ ] Design chat creation and selection flow
-- [ ] Plan loading states and error handling
+- [x] Design chat state management with React Query (query keys, invalidation)
+- [x] Plan localStorage persistence strategy (selected chat id + best-effort cache)
+- [x] Design chat creation and selection flow (create → select; sidebar selection persists)
+- [x] Plan loading states and error handling (loading indicator + small inline errors)
 
 #### Implementation Notes
-- **Files Created**: [To be filled]
-- **Files Modified**: [To be filled]
-- **React Query Hooks**: [To be filled]
+- **Files Created**:
+  - `web/src/data/queries/chat.ts`: Chat queries + mutations (`useChatsQuery`, `useChatQuery`, `useCreateChatMutation`, `useSendMessageMutation`)
+  - `web/src/lib/persistence.ts`: localStorage helpers (`loadSelectedChatId`, `saveSelectedChatId`, optional cache helpers)
+- **Files Modified**:
+  - `web/src/pages/home-page.tsx`: Removed dummy data and wired UI to backend via React Query + persistence
+- **React Query Hooks**:
+  - `useChatsQuery()` → `GET /api/chats`
+  - `useChatQuery(chatId)` → `GET /api/chats/:chatId`
+  - `useCreateChatMutation()` → `POST /api/chats` + invalidate `['chats']`
+  - `useSendMessageMutation(chatId)` → `POST /api/chats/:chatId/messages` + invalidate `['chat', chatId]` and `['chats']`
+
+#### Manual Testing (Minimum)
+- [x] Backend smoke test: create chat → send message → fetch chat (confirmed 2 messages returned)
+- [x] Frontend build passes (`npm run build`)
 
 #### Special Aspects for Video
-- [ ] Show React Query setup and usage
-- [ ] Demonstrate localStorage persistence
-- [ ] Show loading indicators
-- [ ] Explain state management flow
+- [x] Show React Query hooks layer (`web/src/data/queries/chat.ts`) and how the UI stays thin
+- [x] Demonstrate localStorage persistence (selected chat survives reload)
+- [x] Show loading indicator (`AssistantLoadingIndicator`) during LLM response
+- [x] Explain state flow: sidebar selects `chatId` → `useChatQuery(chatId)` fetches messages → send mutation invalidates chat query
 
 ---
 
