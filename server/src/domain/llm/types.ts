@@ -25,7 +25,16 @@ export interface LLMProvider {
    * @param messages - Array of messages (conversation history)
    * @returns The LLM's text response
    */
-  sendMessage(messages: Message[]): Promise<string>;
+  sendMessage(
+    messages: Message[],
+    options?: {
+      /**
+       * Optional system prompt to steer the response.
+       * Must not include secrets.
+       */
+      systemPrompt?: string;
+    }
+  ): Promise<string>;
 
   /**
    * Get the provider's display name

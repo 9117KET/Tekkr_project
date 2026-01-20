@@ -20,7 +20,7 @@ export class OpenAIProvider implements LLMProvider {
     return 'gpt-4';
   }
 
-  async sendMessage(messages: Message[]): Promise<string> {
+  async sendMessage(messages: Message[], options?: { systemPrompt?: string }): Promise<string> {
     throw new Error('OpenAI provider is not yet implemented. Please use Anthropic or Gemini.');
   }
 }

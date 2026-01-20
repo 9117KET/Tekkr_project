@@ -2,8 +2,10 @@ import React from "react";
 import {cn} from "../lib/utils";
 import Spinner from "./ui/spinner";
 import {BotIcon, UserIcon} from "lucide-react";
+import {parseProjectPlanMessage} from "../lib/project-plan-parser";
+import {ProjectPlanPreview} from "./project-plan-preview";
 
-export type Message = { role: "user" | "assistant"; content: string };
+export type Message = { role: "user" | "assistant"; content: string; projectPlan?: unknown };
 
 export function MessageContainer({ role, children }: React.PropsWithChildren<{ role: Message["role"] }>) {
     return (
@@ -20,6 +22,21 @@ export function MessageContainer({ role, children }: React.PropsWithChildren<{ r
             <div className={cn(role === "user" ? "pe-2 ps-16" : "flex w-full flex-col items-start pe-16 ps-2")}>
                 {children}
             </div>
+        </div>
+    );
+}
+
+export function MessageBody({message}: {message: Message}) {
+    const parsed = parseProjectPlanMessage({content: message.content, projectPlan: message.projectPlan});
+    return (
+        <div className="flex w-full flex-col gap-3">
+            {parsed.beforeText.trim().length > 0 && (
+                <div className="whitespace-pre-wrap text-sm">{parsed.beforeText.trim()}</div>
+            )}
+            {parsed.projectPlan && <ProjectPlanPreview plan={parsed.projectPlan} />}
+            {parsed.afterText.trim().length > 0 && (
+                <div className="whitespace-pre-wrap text-sm">{parsed.afterText.trim()}</div>
+            )}
         </div>
     );
 }

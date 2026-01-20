@@ -1,7 +1,7 @@
 import {ChatSidebar} from "../components/chat-sidebar";
 import {useEffect, useMemo, useState} from "react";
 import {ChatInputBox} from "../components/chat-input-box";
-import {AssistantLoadingIndicator, MessageContainer} from "../components/message";
+import {AssistantLoadingIndicator, MessageBody, MessageContainer} from "../components/message";
 import {
     ChatMessage,
     useChatQuery,
@@ -13,6 +13,7 @@ import {loadSelectedChatId, saveCachedChats, saveSelectedChatId} from "../lib/pe
 
 export function HomePage () {
     const [chatId, setChatId] = useState<string | null>(null);
+    const [hasRestoredSelection, setHasRestoredSelection] = useState(false);
 
     const chatsQuery = useChatsQuery();
     const createChatMutation = useCreateChatMutation();
@@ -20,12 +21,14 @@ export function HomePage () {
     // Restore selected chat on first load.
     useEffect(() => {
         setChatId(loadSelectedChatId());
+        setHasRestoredSelection(true);
     }, []);
 
     // Persist selected chat id whenever it changes.
     useEffect(() => {
+        if (!hasRestoredSelection) return;
         saveSelectedChatId(chatId);
-    }, [chatId]);
+    }, [chatId, hasRestoredSelection]);
 
     // Best-effort cache for faster reloads; backend remains source of truth.
     useEffect(() => {
@@ -91,8 +94,8 @@ function ChatWindow ({ chatId }: { chatId: string | null }) {
         )}
 
         {messages.map((message, index) => (
-            <MessageContainer role={message.role} key={index}>
-                {message.content}
+            <MessageContainer role={message.role} key={message.id ?? index}>
+                <MessageBody message={message} />
             </MessageContainer>
         ))}
 

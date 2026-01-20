@@ -18,6 +18,30 @@ import { Message, CreateChatRequest, SendMessageRequest } from '../../../domain/
 import { LLMProviderFactory } from '../../../domain/llm/factory';
 import { randomUUID } from 'crypto';
 
+function isProjectPlanRequest(text: string): boolean {
+  return /project\s+plan/i.test(text);
+}
+
+function buildProjectPlanSystemPrompt(): string {
+  return [
+    'When (and only when) the user is requesting a project plan, you MUST include exactly one <project_plan>...</project_plan> block inside your response.',
+    'The content inside <project_plan> must be valid JSON (no markdown fences) with this schema:',
+    '{"workstreams":[{"title":string,"description":string,"deliverables":[{"title":string,"description":string}]}]}',
+    'Outside the <project_plan> block, respond normally with helpful natural language.',
+    'The <project_plan> block MAY appear in the middle of your message (include 1-2 sentences before and after it).',
+    'Do not include any other <project_plan> blocks. Do not put any extra text inside the tags besides JSON.',
+  ].join('\n');
+}
+
+function extractProjectPlanJson(content: string): string | null {
+  const open = '<project_plan>';
+  const close = '</project_plan>';
+  const start = content.indexOf(open);
+  const end = content.indexOf(close);
+  if (start === -1 || end === -1 || end <= start) return null;
+  return content.slice(start + open.length, end).trim();
+}
+
 const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
   // Initialize LLM provider (singleton pattern via factory)
   const llmProvider = LLMProviderFactory.create();
@@ -141,7 +165,10 @@ const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
         // Call LLM provider
         let assistantResponse: string;
         try {
-          assistantResponse = await llmProvider.sendMessage(conversationHistory);
+          const wantsProjectPlan = isProjectPlanRequest(content);
+          assistantResponse = await llmProvider.sendMessage(conversationHistory, {
+            systemPrompt: wantsProjectPlan ? buildProjectPlanSystemPrompt() : undefined,
+          });
         } catch (llmError: unknown) {
           fastify.log.error({ err: llmError }, 'LLM error');
           // Remove the user message if LLM call failed
@@ -163,6 +190,16 @@ const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
           content: assistantResponse,
           timestamp: Date.now(),
         };
+
+        // If the response contains a project plan block, attach the parsed plan for reliable rendering.
+        const planJson = extractProjectPlanJson(assistantResponse);
+        if (planJson) {
+          try {
+            assistantMessage.projectPlan = JSON.parse(planJson);
+          } catch {
+            // Fail closed: keep message text; skip attaching invalid plan JSON.
+          }
+        }
 
         // Add assistant message to chat
         chatStore.addMessage(chatId, assistantMessage);

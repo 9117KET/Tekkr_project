@@ -20,7 +20,7 @@ export class GeminiProvider implements LLMProvider {
     return 'gemini-2.0-flash-exp';
   }
 
-  async sendMessage(messages: Message[]): Promise<string> {
+  async sendMessage(messages: Message[], options?: { systemPrompt?: string }): Promise<string> {
     throw new Error('Gemini provider is not yet implemented. Please use Anthropic or OpenAI.');
   }
 }

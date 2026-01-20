@@ -254,25 +254,39 @@
 ---
 
 ### Phase 3: Project Plan Preview Feature
-**Date**: [To be filled]
-**Status**: Not Started
+**Date**: Current Session
+**Status**: ✅ Completed
 
 #### Planning (Chain of Thought)
-- [ ] Analyze project plan structure (workstreams → deliverables)
-- [ ] Design parsing logic for project plans in LLM responses
-- [ ] Design expandable/collapsible UI component
-- [ ] Plan inline rendering within message content
+- [x] Analyze project plan structure (workstreams → deliverables)
+- [x] Decide on a reliable LLM output format (tagged JSON inside message)
+- [x] Design parsing logic for project plans in LLM responses (fail-closed JSON parsing + type guard)
+- [x] Design expandable/collapsible UI component
+- [x] Plan inline rendering within message content (text-before / preview / text-after)
 
 #### Implementation Notes
-- **Files Created**: [To be filled]
-- **Files Modified**: [To be filled]
-- **Parsing Strategy**: [To be filled]
+- **Files Created**:
+  - `web/src/types/project-plan.ts`: `ProjectPlan` / `Workstream` / `Deliverable` types
+  - `web/src/lib/project-plan-parser.ts`: extracts `<project_plan>...</project_plan>` and parses JSON safely
+  - `web/src/components/project-plan-preview.tsx`: inline preview UI with collapsible workstreams
+- **Files Modified**:
+  - `server/src/domain/llm/types.ts`: `LLMProvider.sendMessage(messages, { systemPrompt })` to support structured output prompts
+  - `server/src/domain/llm/providers/anthropic.ts`: passes `system` prompt to Anthropic messages API when present
+  - `server/src/domain/llm/providers/openai.ts`, `server/src/domain/llm/providers/gemini.ts`: updated signature to match interface
+  - `server/src/routes/api/chats/index.ts`: when user requests a project plan, add system prompt + parse & attach `projectPlan` on assistant message
+  - `web/src/components/message.tsx`: renders message text with optional inline project plan preview
+  - `web/src/pages/home-page.tsx`: uses `MessageBody` for inline rendering and fixes selection persistence under React StrictMode
+- **Parsing Strategy**:
+  - Backend instructs the LLM: include exactly one `<project_plan>` JSON block only for project plan requests
+  - Frontend extracts the tag block, parses JSON, validates the schema, then renders it inline
+  - If parsing fails, fallback is plain text (graceful failure)
 
 #### Special Aspects for Video
-- [ ] Show how project plans are detected in messages
-- [ ] Demonstrate expandable/collapsible functionality
-- [ ] Show inline rendering (mid-message)
-- [ ] Explain the parsing/rendering logic
+- [x] Show how project plans are detected in messages (simple `/project plan/i` intent + tagged JSON block)
+- [x] Demonstrate expandable/collapsible functionality (workstreams)
+- [x] Show inline rendering (plan appears mid-message, not only at the end)
+- [x] Explain the parsing/rendering logic (extract tags → JSON parse → schema validate → render)
+- [x] Mention the real-world “gotcha” we fixed: React StrictMode can run effects twice; persistence needed a restore gate to avoid clearing localStorage on mount
 
 ---
 
