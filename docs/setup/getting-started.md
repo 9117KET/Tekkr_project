@@ -27,11 +27,13 @@ Welcome! This document guides you through the setup and development process.
    - Press `Ctrl+,` (Windows) or `Cmd+,` (Mac)
    - Or: File → Preferences → Settings
 
-2. **Add Project Rules**
-   - Navigate to: Rules → Project Rules
-   - Click "+ Add Rule"
-   - Copy the content from `docs/setup/cursor-settings.md` section "Project Rules"
-   - Paste and save
+2. **Project Rules (Tekkr Challenge Rules)**
+   - **Preferred**: Project rules are auto-loaded from `tekkr/hiring-test-full-stack/.cursorrules` (version-controlled).
+   - **Optional (manual)**: If you want to add rules via the UI:
+     - Navigate to: Rules → Project Rules
+     - Click "+ Add Rule"
+     - Copy the content from `.cursorrules`
+     - Paste and save
 
 3. **Verify Configuration**
    - Ask the AI: "What are the requirements for this challenge?"

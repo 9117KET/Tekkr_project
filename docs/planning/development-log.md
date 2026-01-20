@@ -1,4 +1,4 @@
-# Development Log - Tekkr Full-Stack Challenge
+# Development Log - `Tekkr` Full-Stack Challenge
 
 > **Purpose**: This file tracks the entire development process, key decisions, special implementations, and talking points for the final video explanation.
 
@@ -9,11 +9,11 @@
 **Challenge**: Build an LLM-based chat application with project plan preview functionality
 
 **Tech Stack**:
-- **Backend**: Fastify (Node.js/TypeScript)
+- **Backend**: `Fastify` (Node.js/TypeScript)
 - **Frontend**: React + TypeScript
 - **State Management**: React Query
-- **UI Components**: shadcn/ui
-- **LLM**: TBD (Gemini, OpenAI, or Anthropic)
+- **UI Components**: `shadcn/ui`
+- **LLM**: Anthropic (Claude)
 
 **Time Limit**: 3-4 hours
 
@@ -40,10 +40,10 @@
 - [x] Explore existing codebase structure
   - **Why**: Understand existing patterns, components, and architecture to maintain consistency
   - **Findings**:
-    - Backend: Fastify with auto-loading plugin system
-    - Frontend: React with TypeScript, shadcn/ui components already installed
+    - Backend: `Fastify` with auto-loading plugin system
+    - Frontend: React with TypeScript, `shadcn/ui` components already installed
     - Existing components: ChatSidebar, ChatInputBox, Message (dummy data)
-    - React Query already set up in App.tsx
+    - React Query already set up in `App.tsx`
 
 **3. Development Environment Setup**
 - [x] Configure Cursor IDE settings for optimal AI assistance
@@ -65,7 +65,7 @@
 **5. Project Planning Documents**
 - [x] Create tech stack onboarding document
   - **Why**: Understand technologies before coding to make informed decisions
-  - **Content**: Fastify, React, React Query, shadcn/ui explanations with real-world analogies
+  - **Content**: `Fastify`, React, React Query, `shadcn/ui` explanations with real-world analogies
 - [x] Create project plan with chain-of-thought breakdown
   - **Why**: Plan architecture and implementation before coding (follows project rules)
   - **Content**: Problem analysis, architecture design, 4-phase implementation plan, risk assessment
@@ -91,7 +91,7 @@
 - [x] Create documentation sources list
   - **Why**: Prepare list of official docs to index in Cursor for real-time code information
   - **File**: `docs/setup/documentation-sources.md`
-  - **Priority List**: Fastify, React, React Query, shadcn/ui, TypeScript (essential), plus LLM provider docs
+  - **Priority List**: `Fastify`, React, React Query, `shadcn/ui`, TypeScript (essential), plus LLM provider docs
 
 **10. Verification & Testing**
 - [x] Verify project rules are working
@@ -100,9 +100,9 @@
 
 #### Key Decisions
 
-- **LLM Provider**: [To be decided - Gemini/OpenAI/Anthropic]
-  - **Decision Point**: Will choose based on API availability, ease of use, and structured output capabilities
-  - **Impact**: Affects implementation details but abstraction layer ensures easy swapping
+- **LLM Provider**: Anthropic (Claude)
+  - **Decision Point**: We started with Anthropic for Phase 1 to get a working end-to-end LLM integration quickly.
+  - **Impact**: Provider remains swappable via the `LLMProvider` abstraction + factory.
 
 - **Storage Strategy**: localStorage for frontend persistence, in-memory for backend
   - **Rationale**: Requirements explicitly state no database needed
@@ -170,24 +170,52 @@
 ---
 
 ### Phase 1: Backend LLM Integration
-**Date**: [To be filled]
-**Status**: Not Started
+**Date**: Current Session
+**Status**: ✅ Completed
 
 #### Planning (Chain of Thought)
-- [ ] Analyze requirements for LLM endpoint
-- [ ] Design abstraction layer for LLM providers
-- [ ] Plan chat storage structure (in-memory)
-- [ ] Design API endpoints needed
+- [x] Analyze requirements for LLM + chat endpoints
+- [x] Design abstraction layer for LLM providers (Strategy + Factory)
+- [x] Plan chat storage structure (in-memory store; no DB)
+- [x] Design REST API endpoints
 
 #### Implementation Notes
-- **Files Created**: [To be filled]
-- **Files Modified**: [To be filled]
-- **Key Design Patterns**: [To be filled]
+- **Files Created**:
+  - `server/src/domain/chat/types.ts`: Chat + Message types and request DTOs
+  - `server/src/domain/chat/store.ts`: In-memory `ChatStore` (singleton instance export)
+  - `server/src/domain/llm/types.ts`: `LLMProvider` interface + provider type union
+  - `server/src/domain/llm/factory.ts`: `LLMProviderFactory` (env-driven provider selection)
+  - `server/src/domain/llm/providers/anthropic.ts`: Anthropic implementation using `@anthropic-ai/sdk`
+  - `server/src/domain/llm/providers/openai.ts`: Stub (not implemented yet)
+  - `server/src/domain/llm/providers/gemini.ts`: Stub (not implemented yet)
+  - `server/src/routes/api/chats/index.ts`: Chat REST API routes at `/api/chats/*`
+  - `server/.env.example`: Environment variable template (API keys + provider selection)
+- **Files Modified**:
+  - `server/package.json`: PowerShell-safe `npm start` (via `prestart`) + Anthropic SDK dependency
+  - `server/.gitignore`: Ignore `.env*` files
+  - `server/src/plugins/support.ts`: Skip auth for `/` and `/api/chats*` (single-user requirement)
+- **Key Design Patterns**:
+  - **Strategy Pattern**: `LLMProvider` interface with provider implementations
+  - **Factory Pattern**: `LLMProviderFactory` selects provider via env (`LLM_PROVIDER`)
+  - **Singleton (lightweight)**: `chatStore` exported as a single instance for in-memory state
+
+#### Manual Testing (Backend)
+- [x] `POST /api/chats` creates a chat
+- [x] `GET /api/chats` lists chats
+- [x] `GET /api/chats/:chatId` returns chat + messages
+- [x] `POST /api/chats/:chatId/messages` stores user message, calls LLM, stores assistant response
+
+#### Debug Story (Worth Mentioning in Video)
+- **Issue**: LLM calls failed with `404 not_found_error` from Anthropic.
+- **Root cause**: Model ID `claude-3-5-sonnet-20241022` was not available/was deprecated for the account.
+- **Fix**: Defaulted `ANTHROPIC_MODEL` fallback to `claude-sonnet-4-20250514` and verified success end-to-end.
+  - **Why this matters in real projects**: third-party model/version identifiers can change; configs should be explicit and easy to swap.
 
 #### Special Aspects for Video
-- [ ] Show the LLM abstraction interface/class
-- [ ] Explain how to swap providers
-- [ ] Demonstrate error handling
+- [x] Show the LLM abstraction (`LLMProvider`) + factory (`LLMProviderFactory`)
+- [x] Explain provider swapping via env (`LLM_PROVIDER`, `ANTHROPIC_MODEL`)
+- [x] Demonstrate error handling path for invalid requests + missing chats + LLM failures
+- [x] Call out the “real-world debugging” lesson: model IDs and permissions can break integrations
 
 ---
 
@@ -306,7 +334,7 @@
 - Time spent
 
 ### Architecture Overview (1 minute)
-- Backend structure (Fastify)
+- Backend structure (`Fastify`)
 - Frontend structure (React + React Query)
 - LLM abstraction layer
 - Data flow diagram (mental or visual)
