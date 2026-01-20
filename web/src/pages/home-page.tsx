@@ -22,7 +22,8 @@ export function HomePage () {
 
     // Restore selected chat on first load.
     useEffect(() => {
-        setChatId(loadSelectedChatId());
+        const restored = loadSelectedChatId();
+        setChatId(restored);
         setHasRestoredSelection(true);
     }, []);
 
@@ -42,6 +43,22 @@ export function HomePage () {
     const chats = useMemo(() => {
         return (chatsQuery.data ?? []).map((c) => ({id: c.id, name: c.name}));
     }, [chatsQuery.data]);
+
+    // If the backend restarted (in-memory store), a previously selected chatId may no longer exist.
+    // Fail gracefully by clearing the selection (and persisted selection) instead of showing a permanent error.
+    useEffect(() => {
+        if (!hasRestoredSelection) return;
+        if (!chatId) return;
+        if (!chatsQuery.data) return;
+
+        const exists = chatsQuery.data.some((c) => c.id === chatId);
+        if (!exists) {
+            // #region agent log
+            fetch('http://127.0.0.1:7247/ingest/79235865-8dbf-4e02-b919-c180d9bfdcc1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-fix',hypothesisId:'H3',location:'web/src/pages/home-page.tsx:HomePage:missingChat',message:'Selected chat missing from server list; clearing selection',data:{chatId,serverChatCount:chatsQuery.data.length},timestamp:Date.now()})}).catch(()=>{});
+            // #endregion
+            setChatId(null);
+        }
+    }, [chatId, chatsQuery.data, hasRestoredSelection]);
 
     const onCreateChat = async () => {
         const created = await createChatMutation.mutateAsync({});

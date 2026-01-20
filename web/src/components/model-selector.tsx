@@ -11,14 +11,19 @@
 
 import {useEffect, useMemo, useState} from "react";
 import {Button} from "./ui/button";
-import {Input} from "./ui/input";
 import {Chat, LLMProviderType, useUpdateChatModelMutation} from "../data/queries/chat";
 
-const PROVIDERS: Array<{value: LLMProviderType; label: string; defaultModel: string}> = [
-  {value: "anthropic", label: "Anthropic", defaultModel: "claude-sonnet-4-20250514"},
-  {value: "openai", label: "OpenAI", defaultModel: "gpt-4o-mini"},
-  {value: "gemini", label: "Gemini", defaultModel: "gemini-2.0-flash"},
+const PROVIDERS: Array<{value: LLMProviderType; label: string}> = [
+  {value: "anthropic", label: "Anthropic"},
+  {value: "openai", label: "OpenAI"},
+  {value: "gemini", label: "Gemini"},
 ];
+
+const MODELS: Record<LLMProviderType, string[]> = {
+  anthropic: ["claude-sonnet-4-20250514"],
+  openai: ["gpt-4o-mini"],
+  gemini: ["gemini-2.0-flash"],
+};
 
 export function ModelSelector({chat}: {chat: Chat}) {
   const mutation = useUpdateChatModelMutation(chat.id);
@@ -35,10 +40,7 @@ export function ModelSelector({chat}: {chat: Chat}) {
     setModel(chat.llmModel);
   }, [chat.id, chat.llmProvider, chat.llmModel]);
 
-  const providerMeta = useMemo(
-    () => PROVIDERS.find((p) => p.value === provider) ?? PROVIDERS[0],
-    [provider]
-  );
+  const availableModels = useMemo(() => MODELS[provider], [provider]);
 
   const hasChanges = provider !== chat.llmProvider || model !== chat.llmModel;
 
@@ -67,8 +69,7 @@ export function ModelSelector({chat}: {chat: Chat}) {
             onChange={(e) => {
               const next = e.target.value as LLMProviderType;
               setProvider(next);
-              const nextMeta = PROVIDERS.find((p) => p.value === next);
-              if (nextMeta) setModel(nextMeta.defaultModel);
+              setModel(MODELS[next][0]);
             }}
             disabled={mutation.isPending}
           >
@@ -82,12 +83,18 @@ export function ModelSelector({chat}: {chat: Chat}) {
 
         <label className="flex flex-col gap-1 md:col-span-2">
           <span className="text-xs font-semibold text-muted-foreground">Model</span>
-          <Input
+          <select
+            className="h-10 rounded-md border bg-background px-3 text-sm"
             value={model}
             onChange={(e) => setModel(e.target.value)}
             disabled={mutation.isPending}
-            placeholder={providerMeta.defaultModel}
-          />
+          >
+            {availableModels.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
 
