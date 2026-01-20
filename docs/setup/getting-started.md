@@ -79,7 +79,21 @@ Backend runs on: http://localhost:8000
 cd web
 npm start
 ```
-Frontend runs on: http://localhost:3000
+Frontend runs on: http://localhost:3000 (CRA may prompt and use 3001 if 3000 is busy)
+
+---
+
+## 🔐 Environment Variables (LLM Providers)
+
+You can use **Anthropic**, **OpenAI**, or **Gemini**. If an API key is missing and you select that provider/model, the app will show a helpful error message.
+
+**Backend (`server/`)**
+- `ANTHROPIC_API_KEY` (required for Anthropic)
+- `ANTHROPIC_MODEL` (optional, default: `claude-sonnet-4-20250514`)
+- `OPENAI_API_KEY` (required for OpenAI)
+- `OPENAI_DEFAULT_MODEL` (optional, default: `gpt-4o-mini`)
+- `GEMINI_API_KEY` (required for Gemini)
+- `GEMINI_DEFAULT_MODEL` (optional, default: `gemini-2.0-flash`)
 
 ---
 
@@ -167,6 +181,11 @@ This is the minimum manual test path to validate Phase 1 + Phase 2 before starti
    - the same chat should remain selected
    - the chat history should still be available
 
+### Bonus (Model Selector)
+6. Select a chat → use **Model** selector to choose provider + model → click **Apply**
+7. Send a message → the selected provider/model should be used for that chat
+8. Switch chats → each chat keeps its own provider/model selection
+
 ### Phase 3: Project Plan Preview (45-60 min)
 - Project plan parsing
 - Preview component
@@ -225,15 +244,15 @@ As you develop, keep these in mind for the final video:
 - **Error handling** - Graceful errors everywhere
 
 ### Requirements Checklist
-- [ ] LLM-based chat works
-- [ ] New chat button works
-- [ ] Chat switching works
-- [ ] Loading indicators work
-- [ ] Persistence on reload works
-- [ ] Project plan preview works inline
-- [ ] Expandable/collapsible sections work
-- [ ] Error handling works
-- [ ] LLM can be swapped easily
+- [x] LLM-based chat works
+- [x] New chat button works
+- [x] Chat switching works
+- [x] Loading indicators work
+- [x] Persistence on reload works (chat list + selected chat)
+- [x] Project plan preview works inline (can appear mid-message)
+- [x] Expandable/collapsible sections work
+- [x] Error handling works (graceful UI states + readable API errors)
+- [x] LLM can be swapped easily (provider abstraction + per-chat selection)
 
 ---
 

@@ -19,7 +19,8 @@ import { LLMProviderFactory } from '../../../domain/llm/factory';
 import { randomUUID } from 'crypto';
 
 function isProjectPlanRequest(text: string): boolean {
-  return /project\s+plan/i.test(text);
+  // Accept a few common variants while staying reasonably specific.
+  return /(project\s+plan|make\s+a\s+plan|create\s+a\s+plan|outline\s+a\s+plan)/i.test(text);
 }
 
 function buildProjectPlanSystemPrompt(): string {
@@ -136,6 +137,7 @@ const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
 
       chatStore.updateChat(chatId, { llmProvider: provider, llmModel: model.trim() });
       const updated = chatStore.getChat(chatId);
+
       reply.send(updated);
     } catch (error) {
       fastify.log.error(error);
@@ -173,6 +175,8 @@ const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
           return;
         }
 
+        const wantsProjectPlan = isProjectPlanRequest(content);
+
         // Create user message
         const userMessage: Message = {
           id: randomUUID(),
@@ -200,7 +204,6 @@ const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
         // Call LLM provider (per-chat provider/model)
         let assistantResponse: string;
         try {
-          const wantsProjectPlan = isProjectPlanRequest(content);
           const provider = LLMProviderFactory.create(chat.llmProvider);
           assistantResponse = await provider.sendMessage(conversationHistory, {
             systemPrompt: wantsProjectPlan ? buildProjectPlanSystemPrompt() : undefined,
@@ -213,10 +216,17 @@ const chat: FastifyPluginAsync = async (fastify): Promise<void> => {
           if (chatToUpdate) {
             chatToUpdate.messages = chatToUpdate.messages.filter((msg) => msg.id !== userMessage.id);
           }
-          reply.code(500).send({
-            error: 'Failed to get response from LLM',
-            code: 'LLM_ERROR',
-          });
+
+          const errMsg = llmError instanceof Error ? llmError.message : String(llmError);
+          if (errMsg.includes('environment variable is required') && errMsg.includes('API_KEY')) {
+            reply.code(400).send({
+              error: errMsg,
+              code: 'MISSING_API_KEY',
+            });
+            return;
+          }
+
+          reply.code(500).send({ error: 'Failed to get response from LLM', code: 'LLM_ERROR' });
           return;
         }
 

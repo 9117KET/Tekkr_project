@@ -43,7 +43,12 @@ export function ModelSelector({chat}: {chat: Chat}) {
   const hasChanges = provider !== chat.llmProvider || model !== chat.llmModel;
 
   const apply = async () => {
-    await mutation.mutateAsync({provider, model});
+    try {
+      await mutation.mutateAsync({provider, model});
+    } catch {
+      // Intentionally swallow to avoid crashing the UI on network/backend errors.
+      // The component renders an inline error message via mutation.isError.
+    }
   };
 
   return (

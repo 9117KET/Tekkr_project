@@ -319,14 +319,14 @@
 ## Key Architectural Decisions
 
 ### 1. LLM Abstraction Layer
-**Decision**: [To be filled]
-**Rationale**: [To be filled]
+**Decision**: Use a small `LLMProvider` interface + `LLMProviderFactory` (Factory Pattern) with provider implementations (`AnthropicProvider`, `OpenAIProvider`, `GeminiProvider`).
+**Rationale**: Keeps routes/storage independent from any single SDK, so swapping providers is a one-file change (or per-chat selection).
 **Impact**: Makes it easy to swap LLM providers
 
 ### 2. State Management Strategy
-**Decision**: [To be filled]
-**Rationale**: [To be filled]
-**Impact**: [To be filled]
+**Decision**: Use React Query for server state (chats, chat detail, mutations) and local component state for UI-only values.
+**Rationale**: React Query gives caching, refetching, and consistent async status flags (loading/error/pending) without custom state machines.
+**Impact**: Predictable UI states and simple data flow (invalidate → refetch).
 
 ### 3. Persistence Strategy
 **Decision**: localStorage for frontend, in-memory for backend
@@ -334,31 +334,36 @@
 **Impact**: Simple but sufficient for single-user scenario
 
 ### 4. Project Plan Parsing
-**Decision**: [To be filled]
-**Rationale**: [To be filled]
-**Impact**: [To be filled]
+**Decision**: Use tagged JSON (`<project_plan>...</project_plan>`) enforced via an LLM system prompt, then parse + validate before rendering.
+**Rationale**: LLMs are unreliable at “pure JSON only” output; tags create a safe extraction boundary and allow the plan to appear mid-message.
+**Impact**: Inline plan preview is robust; failures degrade gracefully to plain text.
 
 ---
 
 ## Technical Challenges & Solutions
 
-### Challenge 1: [To be filled]
-**Problem**: [To be filled]
-**Solution**: [To be filled]
-**Lessons Learned**: [To be filled]
+### Challenge 1: Provider model/API key issues
+**Problem**: Provider calls can fail due to missing keys or invalid model IDs (e.g., Anthropic 404 model not found; Gemini/OpenAI missing key).
+**Solution**: Update provider defaults to valid models, surface clear error codes/messages, and handle failures in UI without “blank screen” crashes.
+**Lessons Learned**: Treat LLM providers as unreliable networks: validate config early, fail with actionable errors, and keep UI resilient.
 
 ---
 
 ## Code Quality Highlights
 
 ### What Makes This Solution Clean
-- [To be filled as we build]
+- Small, focused modules (`queries/chat.ts`, provider classes, `ChatStore`)
+- Clear contracts at boundaries (API requests/responses, provider interface, parser type guards)
+- Fail-closed parsing for structured output (never crash UI on malformed JSON)
 
 ### Design Patterns Used
-- [To be filled as we build]
+- Factory Pattern (`LLMProviderFactory`)
+- Strategy Pattern (providers implementing `LLMProvider`)
+- Singleton (in-memory `chatStore` as a single source of truth)
 
 ### SOLID Principles Applied
-- [To be filled as we build]
+- **SRP**: provider classes only talk to their SDK; UI components focus on rendering; hooks focus on data fetching
+- **OCP**: new providers/models can be added without rewriting chat routes/components
 
 ---
 

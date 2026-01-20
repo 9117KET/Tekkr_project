@@ -3,13 +3,21 @@ import {Button} from "./ui/button";
 import {SendIcon} from "lucide-react";
 import {Textarea} from "./ui/textarea";
 
-export function ChatInputBox({onSend}: { onSend: (message: string) => void }) {
+export function ChatInputBox({onSend}: { onSend: (message: string) => Promise<void> }) {
   const [input, setInput] = useState("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSend = () => {
-    onSend(input);
-    setInput("");
+  const handleSend = async () => {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    try {
+      await onSend(trimmed);
+      setInput("");
+    } catch (e) {
+      // Prevent unhandled promise rejections from crashing the UI overlay.
+      // Error state is shown by the parent via React Query mutation flags.
+    }
   };
 
   function resizeTextArea(e: HTMLTextAreaElement) {
@@ -27,7 +35,7 @@ export function ChatInputBox({onSend}: { onSend: (message: string) => void }) {
       const modKey = e.shiftKey || e.ctrlKey || e.metaKey || e.altKey;
       if (!modKey) {
         e.preventDefault();
-        handleSend();
+        void handleSend();
       }
     }
   };
@@ -43,7 +51,7 @@ export function ChatInputBox({onSend}: { onSend: (message: string) => void }) {
               onKeyDown={onKeyDown}
               placeholder="Type your message..."
           />
-          <Button onClick={handleSend} disabled={!input.trim()}>
+          <Button onClick={() => void handleSend()} disabled={!input.trim()}>
             <SendIcon className={"me-2 h-5 w-5"}/>
             Send
           </Button>

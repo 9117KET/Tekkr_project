@@ -11,6 +11,7 @@
  */
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {apiClient} from "../client";
+import type {AxiosError} from "axios";
 
 export type ChatRole = "user" | "assistant";
 export type LLMProviderType = "anthropic" | "openai" | "gemini";
@@ -109,11 +110,18 @@ export function useSendMessageMutation(chatId: string | null) {
   return useMutation({
     mutationFn: async (body: SendMessageRequest) => {
       if (!chatId) throw new Error("chatId is required");
-      const response = await apiClient.post(`/api/chats/${chatId}/messages`, body);
-      if (response.status !== 200) {
+      try {
+        const response = await apiClient.post(`/api/chats/${chatId}/messages`, body);
+        return response.data as SendMessageResponse;
+      } catch (e) {
+        const err = e as AxiosError<{error?: string; code?: string}>;
+        const status = err.response?.status;
+        const apiError = err.response?.data?.error;
+        if (status && apiError) {
+          throw new Error(`${apiError} (HTTP ${status})`);
+        }
         throw new Error("Failed to send message");
       }
-      return response.data as SendMessageResponse;
     },
     onSuccess: async () => {
       if (!chatId) return;
@@ -128,11 +136,18 @@ export function useUpdateChatModelMutation(chatId: string | null) {
   return useMutation({
     mutationFn: async (body: UpdateChatModelRequest) => {
       if (!chatId) throw new Error("chatId is required");
-      const response = await apiClient.patch(`/api/chats/${chatId}/model`, body);
-      if (response.status !== 200) {
+      try {
+        const response = await apiClient.patch(`/api/chats/${chatId}/model`, body);
+        return response.data as Chat;
+      } catch (e) {
+        const err = e as AxiosError<{error?: string; code?: string}>;
+        const status = err.response?.status;
+        const apiError = err.response?.data?.error;
+        if (status && apiError) {
+          throw new Error(`${apiError} (HTTP ${status})`);
+        }
         throw new Error("Failed to update chat model");
       }
-      return response.data as Chat;
     },
     onSuccess: async () => {
       if (!chatId) return;

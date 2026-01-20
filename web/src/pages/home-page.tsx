@@ -132,7 +132,9 @@ function ChatWindow ({ chatId }: { chatId: string | null }) {
 
         {sendMessageMutation.isError && (
             <div className={"rounded-lg border bg-background px-4 py-2 text-sm text-destructive"}>
-                Failed to send message. Please try again.
+                {(sendMessageMutation.error instanceof Error
+                    ? sendMessageMutation.error.message
+                    : "Failed to send message. Please try again.")}
             </div>
         )}
 
